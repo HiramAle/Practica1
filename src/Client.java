@@ -57,49 +57,50 @@ public class Client {
     }
 
     public static void showServerFiles(DataOutputStream dataOutputStream, DataInputStream dataInputStream, String localFolder) throws IOException {
-        int size = dataInputStream.read();
-        String[] pathnames = new String[size];
-        String[] types = new String[size];
-        for (int i = 0; i < size; i++) {
+        int numberOfFiles = dataInputStream.read();
+        String[] pathnames = new String[numberOfFiles];
+        String[] types = new String[numberOfFiles];
+        for (int i = 0; i < numberOfFiles; i++) {
             types[i] = dataInputStream.readUTF();
             pathnames[i] = dataInputStream.readUTF();
         }
 
         numberedShowFiles(pathnames, types);
-        if (size > 0) {
+        if (numberOfFiles > 0) {
             int selection = selectOption();
 
-            
-
-            System.out.println("[1] Download");
-            System.out.println("[2] Delete");
-            if (types[selection].equals("folder")) {
-                System.out.println("[3] Open");
-            }
-
-            String action = "";
-
-            switch (selectOption()) {
-                case 1 -> action = "download";
-                case 2 -> action = "delete";
-                case 3 -> action = "open";
-            }
-
-            dataOutputStream.write(selection);
-            dataOutputStream.writeUTF(action);
-
-            switch (action) {
-                case "download" -> {
-                    Utilities.receive_handler(dataInputStream, localFolder);
+            if (selection < pathnames.length) {
+                System.out.println("[1] Download");
+                System.out.println("[2] Delete");
+                if (types[selection].equals("folder")) {
+                    System.out.println("[3] Open");
                 }
-                case "delete" -> {
-                    System.out.println(dataInputStream.readUTF());
-                }
-                case "open" -> {
-                    showServerFiles(dataOutputStream, dataInputStream, localFolder);
-                }
-            }
 
+                String action = "";
+
+                switch (selectOption()) {
+                    case 1 -> action = "download";
+                    case 2 -> action = "delete";
+                    case 3 -> action = "open";
+                }
+
+                dataOutputStream.write(selection);
+                dataOutputStream.writeUTF(action);
+
+                switch (action) {
+                    case "download" -> {
+                        Utilities.receive_handler(dataInputStream, localFolder);
+                    }
+                    case "delete" -> {
+                        System.out.println(dataInputStream.readUTF());
+                    }
+                    case "open" -> {
+                        showServerFiles(dataOutputStream, dataInputStream, localFolder);
+                    }
+                }
+            } else {
+                dataOutputStream.write(selection);
+            }
         }
     }
 
@@ -141,40 +142,42 @@ public class Client {
                 }
                 System.out.println(files[i].getName());
             }
+            System.out.println("[" + files.length + "] Exit");
+
 
             int selection = selectOption();
-            File selectedFile = new File(files[selection].getAbsolutePath());
+            if (selection < files.length) {
+                File selectedFile = new File(files[selection].getAbsolutePath());
 
-            System.out.println("[1] Delete");
-            if (files[selection].isDirectory()) {
-                System.out.println("[2] To Open");
-            }
-
-            switch (selectOption()) {
-                case 1 -> {
-                    boolean deleted;
-                    if (selectedFile.isDirectory()) {
-                        deleted = Utilities.deleteDirectory(selectedFile);
-                    } else {
-                        deleted = selectedFile.delete();
-                    }
-                    if (deleted) {
-                        System.out.println("Deleted " + files[selection].getName());
-
-                    } else {
-                        System.out.println("Failed to delete " + files[selection].getName());
-                    }
-
+                System.out.println("[1] Delete");
+                if (files[selection].isDirectory()) {
+                    System.out.println("[2] Open");
                 }
-                case 2 -> {
-                    File[] newPath = new File[1];
-                    newPath[0] = selectedFile;
-                    showClientFiles(newPath);
+
+                switch (selectOption()) {
+                    case 1 -> {
+                        boolean deleted;
+                        if (selectedFile.isDirectory()) {
+                            deleted = Utilities.deleteDirectory(selectedFile);
+                        } else {
+                            deleted = selectedFile.delete();
+                        }
+                        if (deleted) {
+                            System.out.println("Deleted " + files[selection].getName());
+
+                        } else {
+                            System.out.println("Failed to delete " + files[selection].getName());
+                        }
+
+                    }
+                    case 2 -> {
+                        File[] newPath = new File[1];
+                        newPath[0] = selectedFile;
+                        showClientFiles(newPath);
+                    }
                 }
             }
-
         }
-
     }
 
     public static void numberedShowFiles(String pathnames[], String types[]) {
@@ -190,6 +193,7 @@ public class Client {
                 }
                 System.out.println(pathnames[i]);
             }
+            System.out.println("[" + pathnames.length + "] Exit");
         }
     }
 

@@ -65,35 +65,38 @@ public class Server {
 
         if (size > 0) {
             int selected = dataInputStream.read();
-            String action = dataInputStream.readUTF();
+            if (selected < files.length) {
+                String action = dataInputStream.readUTF();
 
-            switch (action) {
-                case "download" -> {
-                    File[] send = new File[1];
-                    send[0] = files[selected];
-                    Utilities.send_handler(dataOutputStream, send);
-                }
-                case "delete" -> {
-                    File fileToDelete = new File(files[selected].getAbsolutePath());
-                    boolean deleted;
-                    if (fileToDelete.isDirectory()) {
-                        deleted = Utilities.deleteDirectory(fileToDelete);
-                    } else {
-                        deleted = fileToDelete.delete();
+                switch (action) {
+                    case "download" -> {
+                        File[] send = new File[1];
+                        send[0] = files[selected];
+                        Utilities.send_handler(dataOutputStream, send);
                     }
-                    if (deleted) {
-                        System.out.println("Deleted " + fileToDelete.getName());
-                        dataOutputStream.writeUTF("Deleted the file " + fileToDelete.getName());
-                    } else {
-                        System.out.println("Failed to delete " + fileToDelete.getName());
-                        dataOutputStream.writeUTF("Failed to delete the file " + fileToDelete.getName());
+                    case "delete" -> {
+                        File fileToDelete = new File(files[selected].getAbsolutePath());
+                        boolean deleted;
+                        if (fileToDelete.isDirectory()) {
+                            deleted = Utilities.deleteDirectory(fileToDelete);
+                        } else {
+                            deleted = fileToDelete.delete();
+                        }
+                        if (deleted) {
+                            System.out.println("Deleted " + fileToDelete.getName());
+                            dataOutputStream.writeUTF("Deleted the file " + fileToDelete.getName());
+                        } else {
+                            System.out.println("Failed to delete " + fileToDelete.getName());
+                            dataOutputStream.writeUTF("Failed to delete the file " + fileToDelete.getName());
+                        }
                     }
-                }
-                case "open" -> {
-                    File newFile = new File(files[selected].getAbsolutePath());
-                    showServerFiles(dataOutputStream, dataInputStream, newFile);
+                    case "open" -> {
+                        File newFile = new File(files[selected].getAbsolutePath());
+                        showServerFiles(dataOutputStream, dataInputStream, newFile);
+                    }
                 }
             }
+
         }
     }
 }
