@@ -11,10 +11,10 @@ public class Server {
             System.out.println("Server started...");
             System.out.println("Waiting for clients");
 
-            File folder = new File("Server");
-            String path = folder.getAbsolutePath();
-            folder.mkdirs();
-            folder.setWritable(true);
+            File server_folder_file = new File("Server");
+            String path = server_folder_file.getAbsolutePath();
+            server_folder_file.mkdirs();
+            server_folder_file.setWritable(true);
 
             System.out.println("Server folder: " + path);
 
@@ -28,7 +28,7 @@ public class Server {
                 while (running) {
                     int option = dataInputStream.read();
                     switch (option) {
-                        case 2 -> showServerFiles(dataOutputStream, dataInputStream, folder);
+                        case 2 -> showServerFiles(dataOutputStream, dataInputStream, server_folder_file);
                         case 3 -> Utilities.receive_handler(dataInputStream, path);
                         case 4 -> {
                             running = false;

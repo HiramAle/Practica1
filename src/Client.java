@@ -13,10 +13,10 @@ public class Client {
             String address = "127.0.0.1";
             Socket socket = new Socket(address, port);
             System.out.println("Successful connection with Server...");
-            File client_folder = new File("Client");
-            String localFolder = client_folder.getAbsolutePath();
-            client_folder.mkdirs();
-            client_folder.setWritable(true);
+            File client_folder_file = new File("Client");
+            String client_folder_path = client_folder_file.getAbsolutePath();
+            client_folder_file.mkdirs();
+            client_folder_file.setWritable(true);
 
             DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
             DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
@@ -26,8 +26,8 @@ public class Client {
                 int option = menu();
                 dataOutputStream.write(option);
                 switch (option) {
-                    case 1 -> showClientFiles(client_folder.listFiles());
-                    case 2 -> showServerFiles(dataOutputStream, dataInputStream, localFolder);
+                    case 1 -> showClientFiles(client_folder_file.listFiles());
+                    case 2 -> showServerFiles(dataOutputStream, dataInputStream, client_folder_path);
                     case 3 -> {
 //                        Upload File from Client to Server
                         System.out.println("Select File(s)/Folder");
@@ -104,53 +104,34 @@ public class Client {
         }
     }
 
-    public static String selectStringOption() {
-        System.out.println("Select number");
-        Scanner scan = new Scanner(System.in);
-        return scan.nextLine().toLowerCase();
-    }
-
     public static int selectOption() {
         System.out.println("Select number");
         Scanner scan = new Scanner(System.in);
         return scan.nextInt();
     }
 
-    public static void browseFiles(DataOutputStream dos, File[] files) throws IOException {
-        for (File file : files) {
-            if (file.isDirectory()) {
-                dos.writeUTF("folder");
-                dos.writeUTF(file.getName());
-                browseFiles(dos, Objects.requireNonNull(file.listFiles()));
-            } else {
-                dos.writeUTF("file");
-                Utilities.send_file(dos, file);
-            }
-        }
-    }
-
-    public static void showClientFiles(File[] files) {
-        if (files == null || files.length == 0) {
+    public static void showClientFiles(File[] clientFiles) {
+        if (clientFiles == null || clientFiles.length == 0) {
             System.out.println("Empty folder");
         } else {
-            for (int i = 0; i < files.length; i++) {
+            for (int i = 0; i < clientFiles.length; i++) {
                 System.out.print("[" + i + "]" + " ");
-                if (files[i].isDirectory()) {
+                if (clientFiles[i].isDirectory()) {
                     System.out.print("<DIR> ");
                 } else {
                     System.out.print("      ");
                 }
-                System.out.println(files[i].getName());
+                System.out.println(clientFiles[i].getName());
             }
-            System.out.println("[" + files.length + "] Exit");
+            System.out.println("[" + clientFiles.length + "] Exit");
 
 
             int selection = selectOption();
-            if (selection < files.length) {
-                File selectedFile = new File(files[selection].getAbsolutePath());
+            if (selection < clientFiles.length) {
+                File selectedFile = new File(clientFiles[selection].getAbsolutePath());
 
                 System.out.println("[1] Delete");
-                if (files[selection].isDirectory()) {
+                if (clientFiles[selection].isDirectory()) {
                     System.out.println("[2] Open");
                 }
 
@@ -163,17 +144,15 @@ public class Client {
                             deleted = selectedFile.delete();
                         }
                         if (deleted) {
-                            System.out.println("Deleted " + files[selection].getName());
+                            System.out.println("Deleted " + clientFiles[selection].getName());
 
                         } else {
-                            System.out.println("Failed to delete " + files[selection].getName());
+                            System.out.println("Failed to delete " + clientFiles[selection].getName());
                         }
 
                     }
                     case 2 -> {
-                        File[] newPath = new File[1];
-                        newPath[0] = selectedFile;
-                        showClientFiles(newPath);
+                        showClientFiles(selectedFile.listFiles());
                     }
                 }
             }
